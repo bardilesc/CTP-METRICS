@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  ctp-metrics:
+    container_name: ctp-metrics
+    image: ctp-metrics:latest
+    environment:
+      BASE_URL_CTP: "http://192.168.1.83:8080"
+      MONGODB_HOST: "192.168.1.83"
+      MONGODB_PORT: "3307"
+      MONGODB_USER: "root"
+      MONGODB_PASS: "root"
+    ports:
+      - "5000:5000"

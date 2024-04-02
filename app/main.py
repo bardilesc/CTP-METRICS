@@ -9,7 +9,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger #prueba
 
-
 ##############################
 
 from controller.mongo_manager import MongoDBManager
@@ -44,11 +43,9 @@ def save_last_hits():
     return data_json
     #manager.insertar_documento(data_json)
 
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(save_last_hits, CronTrigger(hour=12))
-scheduler.start()
-
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(save_last_hits, CronTrigger(hour=12))
+# scheduler.start()
 
 @app.route('/', methods=['GET'])
 def obtener_datos():
@@ -64,14 +61,41 @@ def obtener_datos():
     
     else:
         requester = HTTPRequest(BASE_URL_CTP)
-        data_hits = requester.get(endpoint=get_hits_peer_dates(startTime,endTime))
-        data_virts = get_virtualization(requester.get(endpoint="em/virtualizeservers/virtualassets"))
+        data_hits = requester.get_json(endpoint=get_hits_peer_dates(startTime,endTime))
+        data_virt_list = requester.get_json(endpoint="em/virtualizeservers/virtualassets")
+        data_virts = get_virtualization(data_virt_list)
 
-        print(data_hits)
-        print(type(data_hits))
-        data_json = json.loads(data_hits)
-        return data_json
+        # Iterar sobre los elementos de data_hits["items"]
+        for item in data_hits["items"]:
+            # Obtener el resourceId del elemento actual
+            virt_name_hits = item.get("name")
+            acum = 0
+            for virt_data in data_virts:
+                virt_name_asset =  virt_data["virt_name"]
 
+                tribu =  virt_data["tribu"]
+                celula =  virt_data["celula"]
+                clan =  virt_data["clan"]
+
+                if virt_name_hits == virt_name_asset:
+                    item.update({
+                        "tribu": tribu ,
+                        "celula": celula ,
+                        "clan": clan
+                    })
+                    acum+=1
+            
+            
+            if acum==0:
+                # Si no se encuentra ninguna coincidencia, establecer los valores como "Na"
+                item.update({
+                    "tribu": "Na",
+                    "celula": "Na",
+                    "clan": "Na",
+                })
+
+        # Ahora data_hits["items"] contiene los elementos actualizados
+        return data_hits
 
         
 if __name__ == "__main__":
@@ -81,4 +105,4 @@ if __name__ == "__main__":
     # Imprimir la fecha y hora actual
     print("Fecha y hora actual:", today_format)
     print("Server puerto 5000")
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

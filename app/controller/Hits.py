@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import urllib.parse
+import json
 
 def get_last_hits():
     today = datetime.today()
@@ -36,7 +37,11 @@ def get_hits_peer_dates(startTime, endTime):
 
 
 def get_virtualization(data):
+   
+
     json_data = data[0]
+    data=[]
+
     folder_ommit = ["traffic_templates", "recorded_traffic", ".settings"]
     for folder in json_data["virtualAssetsProject"]["folders"]:
         if folder["name"] not in folder_ommit:
@@ -45,7 +50,7 @@ def get_virtualization(data):
                 for virt in folder["virtualAssets"]:
                     virt_id = virt["id"]
                     virt_name = virt["name"]
-                    print(tribu, "Na", "Na", virt_id, virt_name )
+                    data.append({"virt_name":virt_name, "virt_id":virt_id, "tribu":"Na", "clan": "Na", "celula": "Na"})
             if folder["folders"] != None:
                 for clanes in folder["folders"]:
                     clan_name = clanes["name"]
@@ -57,4 +62,9 @@ def get_virtualization(data):
                             if celulas["virtualAssets"]!= None:
                                #print(celula_name, " Tiene virtualizaciones")
                                 for virt in celulas["virtualAssets"]:
-                                    print(tribu, clan_name, celula_name, virt["name"])
+                                    virt_id = virt["id"]
+                                    virt_name = virt["name"]
+                                    data.append({"virt_name":virt_name, "virt_id":virt_id, "tribu":tribu, "clan": clan_name, "celula": celula_name})
+
+
+    return data

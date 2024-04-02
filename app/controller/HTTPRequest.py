@@ -7,6 +7,7 @@ class HTTPRequest:
     def get(self, endpoint='', params=None):
         url = f"{self.base_url}/{endpoint}"
         response = requests.get(url, params=params)
+        print(url)
         response.raise_for_status()  # Lanza una excepción si hay un error en la solicitud
         return response.text
 
@@ -21,3 +22,11 @@ class HTTPRequest:
         response = requests.put(url, data=data)
         response.raise_for_status()
         return response.text
+    
+
+    def get_json(self, endpoint='', params=None):
+        url = f"{self.base_url}/{endpoint}"
+        response = requests.get(url, params=params)
+        print(url)
+        response.raise_for_status()  # Lanza una excepción si hay un error en la solicitud
+        return response.json()

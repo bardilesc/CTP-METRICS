@@ -27,6 +27,43 @@ sys.path.append(parent_dir)
 
 BASE_URL_CTP = os.environ.get('BASE_URL_CTP')
 
+
+def get_hit_virts(startTime, endTime):
+    requester = HTTPRequest(BASE_URL_CTP)
+    data_hits = requester.get_json(endpoint=get_hits_peer_dates(startTime,endTime))
+    data_virt_list = requester.get_json(endpoint="em/virtualizeservers/virtualassets")
+    data_virts = get_virtualization(data_virt_list)
+    # Iterar sobre los elementos de data_hits["items"]
+    for item in data_hits["items"]:
+        # Obtener el resourceId del elemento actual
+        virt_name_hits = item.get("name")
+        acum = 0
+        for virt_data in data_virts:
+            virt_name_asset =  virt_data["virt_name"]
+
+            tribu =  virt_data["tribu"]
+            celula =  virt_data["celula"]
+            clan =  virt_data["clan"]
+
+            if virt_name_hits == virt_name_asset:
+                item.update({
+                    "tribu": tribu ,
+                    "celula": celula ,
+                    "clan": clan
+                })
+                acum+=1
+        
+        
+        if acum==0:
+            # Si no se encuentra ninguna coincidencia, establecer los valores como "Na"
+            item.update({
+                "tribu": "Na",
+                "celula": "Na",
+                "clan": "Na",
+            })
+
+    return data_hits
+
 def save_last_hits():
     manager = MongoDBManager()
     requester = HTTPRequest(BASE_URL_CTP)
@@ -43,9 +80,26 @@ def save_last_hits():
     return data_json
     #manager.insertar_documento(data_json)
 
-# scheduler = BackgroundScheduler()
-# scheduler.add_job(save_last_hits, CronTrigger(hour=12))
-# scheduler.start()
+@app.route('/save', methods=['GET'])
+def save_last_hits():
+    startTime = request.args.get('startTime')
+    endTime = request.args.get('endTime')
+    if startTime is None or endTime is None:
+        datos_param = {
+            "error": "Parametros no valido"
+        }
+        response = jsonify(datos_param)
+        response.status_code = 404
+        return response
+    
+    else:
+        try:
+            manager = MongoDBManager()
+            manager.insertar_documento(get_hit_virts(startTime, endTime))
+        except BaseException as bs:
+            return {"Error": str(bs)}
+
+
 
 @app.route('/', methods=['GET'])
 def obtener_datos():
@@ -60,42 +114,8 @@ def obtener_datos():
         return response
     
     else:
-        requester = HTTPRequest(BASE_URL_CTP)
-        data_hits = requester.get_json(endpoint=get_hits_peer_dates(startTime,endTime))
-        data_virt_list = requester.get_json(endpoint="em/virtualizeservers/virtualassets")
-        data_virts = get_virtualization(data_virt_list)
-
-        # Iterar sobre los elementos de data_hits["items"]
-        for item in data_hits["items"]:
-            # Obtener el resourceId del elemento actual
-            virt_name_hits = item.get("name")
-            acum = 0
-            for virt_data in data_virts:
-                virt_name_asset =  virt_data["virt_name"]
-
-                tribu =  virt_data["tribu"]
-                celula =  virt_data["celula"]
-                clan =  virt_data["clan"]
-
-                if virt_name_hits == virt_name_asset:
-                    item.update({
-                        "tribu": tribu ,
-                        "celula": celula ,
-                        "clan": clan
-                    })
-                    acum+=1
-            
-            
-            if acum==0:
-                # Si no se encuentra ninguna coincidencia, establecer los valores como "Na"
-                item.update({
-                    "tribu": "Na",
-                    "celula": "Na",
-                    "clan": "Na",
-                })
-
-        # Ahora data_hits["items"] contiene los elementos actualizados
-        return data_hits
+        return get_hit_virts(startTime, endTime)
+    
 
         
 if __name__ == "__main__":
@@ -105,4 +125,4 @@ if __name__ == "__main__":
     # Imprimir la fecha y hora actual
     print("Fecha y hora actual:", today_format)
     print("Server puerto 5000")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)

@@ -19,7 +19,7 @@ jobs:
         run: pwd
 
       - name: Usuario
-        whoami
+        run: whoami
 
 
       - name: Ejecutar acción de compilación y dockerización

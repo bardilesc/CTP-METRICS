@@ -13,8 +13,8 @@ jobs:
         run: ls -R  # Listar recursivamente todo el repositorio
       - name: Retroceder
         run: | 
-        cd ..  
-        pwd
+          cd ..  
+          pwd
 
       - name: Ejecutar acción de compilación y dockerización
         uses: ./.github/actions/compile-and-dockerize  # Llama a la acción de compilación y Dockerización

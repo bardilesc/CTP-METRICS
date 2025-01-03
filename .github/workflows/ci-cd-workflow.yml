@@ -1,0 +1,21 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main  # Solo se ejecuta en pushes a la rama principal
+
+jobs:
+  compile-and-dockerize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ejecutar acción de compilación y dockerización
+        uses: ./.github/actions/compile-and-dockerize  # Llama a la acción de compilación y Dockerización
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    needs: compile-and-dockerize  # Este job depende del anterior
+    steps:
+      - name: Ejecutar análisis estático
+        uses: ./.github/actions/static-analysis  # Llama a la acción de análisis estático
+

@@ -14,6 +14,7 @@ runs:
 
     - name: Install dependencies
       run: |
+        cd ..
         python -m venv venv
         source venv/bin/activate
         pip install -r requirements.txt  # Instala las dependencias desde el archivo requirements.txt

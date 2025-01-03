@@ -9,12 +9,18 @@ jobs:
   compile-and-dockerize:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Este paso asegura que el código del repositorio sea accesible
+
       - name: Buscar directorios
         run: ls -R  # Listar recursivamente todo el repositorio
-      - name: Retroceder
-        run: | 
-          cd ..  
-          pwd
+
+      - name: Ubicacion
+        run: pwd
+
+      - name: Usuario
+        whoami
+
 
       - name: Ejecutar acción de compilación y dockerización
         uses: ./.github/actions/compile-and-dockerize  # Llama a la acción de compilación y Dockerización
